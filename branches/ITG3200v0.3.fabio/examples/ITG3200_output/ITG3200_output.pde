@@ -13,7 +13,7 @@ void setup(void) {
   Wire.begin();
   Serial.begin(9600);
   gyro.reset();
-  gyro.init(NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
+  gyro.init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
   
   showall();
  
