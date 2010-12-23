@@ -6,14 +6,14 @@
 #include "ITG3200.h"
 
 ITG3200 gyro;
-double xyz[3];
-double temperature;
+float xyz[3];
+float temperature;
 
 void setup(void) {
   Wire.begin();
   Serial.begin(9600);
   gyro.reset();
-  gyro.init(NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
+  gyro.init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
   
   showall();
  

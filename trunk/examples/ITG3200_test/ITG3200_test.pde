@@ -6,7 +6,7 @@
 #include "ITG3200.h"
 
 ITG3200 gyro;
-double  x,y,z,temperature;
+float  x,y,z,temperature;
 
 void setup(void) {
   Wire.begin();
