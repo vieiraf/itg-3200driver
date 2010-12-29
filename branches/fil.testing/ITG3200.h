@@ -43,24 +43,12 @@
 #define SMPLRT_DIV         0x15  // RW   SETUP: Sample Rate Divider       
 #define DLPF_FS            0x16  // RW   SETUP: Digital Low Pass Filter/ Full Scale range
 #define INT_CFG            0x17  // RW   Interrupt: Configuration
-#define INT_STATUS         0x1A  // R  Interrupt: Status
-//#define TEMP_OUT_H         0x1B  // R  SENSOR: Temperature H
-//#define TEMP_OUT_L         0x1C  // R  SENSOR: Temperature L
-#define TEMP_OUT           0x1B  // R  SENSOR: Temperature H   2byte
-
-//#define GYRO_XOUT_H        0x1D  // R  SENSOR: Gyro XH   
-//#define GYRO_XOUT_L        0x1E  // R  SENSOR: Gyro XL   
-#define GYRO_XOUT          0x1D  // R  SENSOR: Gyro X  2byte   
-
-//#define GYRO_YOUT_H        0x1F  // R  SENSOR: Gyro YH   
-//#define GYRO_YOUT_L        0x20  // R  SENSOR: Gyro YL   
-#define GYRO_YOUT          0x1F  // R   SENSOR: Gyro Y   2byte
-
-//#define GYRO_ZOUT_H        0x21  // R  SENSOR: Gyro ZH   
-//#define GYRO_ZOUT_L        0x22  // R  SENSOR: Gyro ZL   
-#define GYRO_ZOUT          0x21  // R  SENSOR: Gyro Z 2byte
-
-#define PWR_MGM            0x3E  // RW   Power Management
+#define INT_STATUS         0x1A  // R	Interrupt: Status
+#define TEMP_OUT           0x1B  // R	SENSOR: Temperature 2bytes
+#define GYRO_XOUT          0x1D  // R	SENSOR: Gyro X 2bytes  
+#define GYRO_YOUT          0x1F  // R	SENSOR: Gyro Y 2bytes
+#define GYRO_ZOUT          0x21  // R	SENSOR: Gyro Z 2bytes
+#define PWR_MGM            0x3E  // RW	Power Management
 
 /* ---- bit maps ---- */
 #define DLPFFS_FS_SEL             0x18  // 00011000
@@ -126,7 +114,7 @@ public:
   float polarities[3];
 
   ITG3200();
-  ITG3200(byte _addr);
+  //ITG3200(byte _addr);
   
   // Gyro initialization
   void init();
@@ -168,9 +156,10 @@ public:
   void readTemp(float *_Temp);
   void readGyroRaw(int  *_GyroXYZ);
   void readGyroRaw(int *_GyroX, int *_GyroY, int *_GyroZ);
-  void setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol); // true = Reversed  false = default
+  void setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol);	// true = Reversed  false = default
   void setGains(float _Xgain, float _Ygain, float _Zgain);
   void setOffsets(float _Xoffset, float _Yoffset, float _Zoffset);
+	void calibrate(int totSamples, int sampleDelayMS);	// assuming that the gyroscope is stationary (updates XYZ offsets)
   void readGyro(float *_GyroXYZ); // includes gain and offset
   void readGyro(float *_GyroX, float *_GyroY, float *_GyroZ); // includes gain and offset    
   // Power management

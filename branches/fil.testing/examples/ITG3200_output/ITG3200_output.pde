@@ -10,11 +10,14 @@ float xyz[3];
 float temperature;
 
 void setup(void) {
-  Wire.begin();
   Serial.begin(9600);
   gyro.reset();
   gyro.init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
-  
+	
+  Serial.print("Calibrating...");
+  gyro.calibrate(2500,5);
+  Serial.println("done.");
+		
   showall();
  
   Serial.println("Registers dump");
@@ -166,6 +169,11 @@ void showall(void) {
         Serial.println("PLL with external 19.2MHz reference");
         break;        
   }
+	
+  Serial.print("X offset                        = ");  
+  Serial.println(gyro.offsets[0]);
+  Serial.print("Y offset                        = ");  
+  Serial.println(gyro.offsets[1]);
+  Serial.print("Z offset                        = ");  
+  Serial.println(gyro.offsets[2]);
 }
-
-

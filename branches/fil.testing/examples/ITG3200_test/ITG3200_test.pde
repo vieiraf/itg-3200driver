@@ -9,11 +9,12 @@ ITG3200 gyro;
 float  x,y,z,temperature;
 
 void setup(void) {
-  Wire.begin();
   Serial.begin(9600);
-
-  gyro.init();   
- }
+  gyro.init(); 
+  Serial.print("Calibrating...");
+  gyro.calibrate(2500,5);
+  Serial.println("done.");
+}
 
 void loop(void) {
     while (gyro.isRawDataReady()) {

@@ -33,6 +33,7 @@ ITG3200::ITG3200() {
   setGains(1.0,1.0,1.0);
   setOffsets(0.0,0.0,0.0);
   setRevPolarity(0,0,0);
+	Wire.begin();
 }
 
 void ITG3200::init() {
@@ -210,6 +211,19 @@ void ITG3200::setOffsets(float _Xoffset, float _Yoffset, float _Zoffset) {
   offsets[0] = _Xoffset;
   offsets[1] = _Yoffset;
   offsets[2] = _Zoffset;
+}
+
+void ITG3200::calibrate(int totSamples, int sampleDelayMS) {
+  float xyz[3], tmpOffsets[] = {0,0,0};
+
+  for (int i = 0;i < totSamples;i++){
+    delay(sampleDelayMS);
+    readGyro(xyz);
+    tmpOffsets[0] += xyz[0];
+    tmpOffsets[1] += xyz[1];
+    tmpOffsets[2] += xyz[2];        
+  }
+	setOffsets(-tmpOffsets[0] / totSamples, -tmpOffsets[1] / totSamples, -tmpOffsets[2] / totSamples);
 }
 
 void ITG3200::readGyro(float *_GyroXYZ){
