@@ -159,7 +159,7 @@ public:
   void setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol);	// true = Reversed  false = default
   void setGains(float _Xgain, float _Ygain, float _Zgain);
   void setOffsets(float _Xoffset, float _Yoffset, float _Zoffset);
-	void calibrate(int totSamples, int sampleDelayMS);	// assuming that the gyroscope is stationary (updates XYZ offsets)
+	void zeroCalibrate(int totSamples, int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets for zero)
   void readGyro(float *_GyroXYZ); // includes gain and offset
   void readGyro(float *_GyroX, float *_GyroY, float *_GyroZ); // includes gain and offset    
   // Power management

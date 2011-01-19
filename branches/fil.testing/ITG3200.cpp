@@ -33,7 +33,7 @@ ITG3200::ITG3200() {
   setGains(1.0,1.0,1.0);
   setOffsets(0.0,0.0,0.0);
   setRevPolarity(0,0,0);
-	Wire.begin();
+	Wire.begin();       //moved from user code, apparently solved wire problems
 }
 
 void ITG3200::init() {
@@ -213,7 +213,7 @@ void ITG3200::setOffsets(float _Xoffset, float _Yoffset, float _Zoffset) {
   offsets[2] = _Zoffset;
 }
 
-void ITG3200::calibrate(int totSamples, int sampleDelayMS) {
+void ITG3200::zeroCalibrate(int totSamples, int sampleDelayMS) {
   float xyz[3], tmpOffsets[] = {0,0,0};
 
   for (int i = 0;i < totSamples;i++){

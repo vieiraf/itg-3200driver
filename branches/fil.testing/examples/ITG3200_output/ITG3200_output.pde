@@ -11,11 +11,12 @@ float temperature;
 
 void setup(void) {
   Serial.begin(9600);
+  // Wire.begin();   //moved to class constructor, apparently solved wire problems
   gyro.reset();
   gyro.init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
 	
-  Serial.print("Calibrating...");
-  gyro.calibrate(2500,5);
+  Serial.print("zeroCalibrating...");
+  gyro.zeroCalibrate(2500,5);
   Serial.println("done.");
 		
   showall();
