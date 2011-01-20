@@ -33,6 +33,10 @@ ITG3200::ITG3200() {
   setGains(1.0,1.0,1.0);
   setOffsets(0.0,0.0,0.0);
   setRevPolarity(0,0,0);
+  //Wire.begin();       //Normally this code is called from setup() at user code
+                        //but some people reported that joining I2C bus earlier
+                        //apparently solved problems with master/slave conditions.
+                        //Uncomment if needed.
 }
 
 void ITG3200::init() {
@@ -186,12 +190,10 @@ void ITG3200::readGyroRaw(int *_GyroXYZ){
 }
 
 void ITG3200::readGyroRaw(int *_GyroX, int *_GyroY, int *_GyroZ){
-  readmem(GYRO_XOUT, 2, _buff);
+  readmem(GYRO_XOUT, 6, _buff);
   *_GyroX = ((_buff[0] << 8) | _buff[1]);
-  readmem(GYRO_YOUT, 2, _buff);
-  *_GyroY = ((_buff[0] << 8) | _buff[1]); 
-  readmem(GYRO_ZOUT, 2, _buff); 
-  *_GyroZ = ((_buff[0] << 8) | _buff[1]);
+  *_GyroY = ((_buff[2] << 8) | _buff[3]); 
+  *_GyroZ = ((_buff[4] << 8) | _buff[5]);
 }
 
 void ITG3200::setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol) {
@@ -212,17 +214,28 @@ void ITG3200::setOffsets(float _Xoffset, float _Yoffset, float _Zoffset) {
   offsets[2] = _Zoffset;
 }
 
+void ITG3200::zeroCalibrate(int totSamples, int sampleDelayMS) {
+  float xyz[3], tmpOffsets[] = {0,0,0};
+
+  for (int i = 0;i < totSamples;i++){
+    delay(sampleDelayMS);
+    readGyro(xyz);
+    tmpOffsets[0] += xyz[0];
+    tmpOffsets[1] += xyz[1];
+    tmpOffsets[2] += xyz[2];        
+  }
+	setOffsets(-tmpOffsets[0] / totSamples, -tmpOffsets[1] / totSamples, -tmpOffsets[2] / totSamples);
+}
+
 void ITG3200::readGyro(float *_GyroXYZ){
   readGyro(_GyroXYZ, _GyroXYZ+1, _GyroXYZ+2);
 }
 
 void ITG3200::readGyro(float *_GyroX, float *_GyroY, float *_GyroZ){
-  readmem(GYRO_XOUT, 2, _buff);
+  readmem(GYRO_XOUT, 6, _buff);
   *_GyroX = (((_buff[0] << 8) | _buff[1]) / 14.375 * polarities[0] * gains[0] + offsets[0]);
-  readmem(GYRO_YOUT, 2, _buff);
-  *_GyroY = (((_buff[0] << 8) | _buff[1]) / 14.375 * polarities[1] * gains[1] + offsets[1]); 
-  readmem(GYRO_ZOUT, 2, _buff); 
-  *_GyroZ = (((_buff[0] << 8) | _buff[1]) / 14.375 * polarities[2] * gains[2] + offsets[2]);
+  *_GyroY = (((_buff[2] << 8) | _buff[3]) / 14.375 * polarities[1] * gains[1] + offsets[1]); 
+  *_GyroZ = (((_buff[4] << 8) | _buff[5]) / 14.375 * polarities[2] * gains[2] + offsets[2]);
 }
 
 void ITG3200::reset() {     
