@@ -180,7 +180,7 @@ public:
 private:
 
   int _dev_address;
-  byte _buff[2];      
+  byte _buff[6];      
 
   void writemem(byte _addr, byte _val);
   void readmem(byte _addr, int _nbytes, byte __buff[]);
