@@ -1,5 +1,5 @@
 /****************************************************************************
-* ITG3200.h - ITG-3200/I2C library v0.3 for Arduino                         *
+* ITG3200.h - ITG-3200/I2C library v0.4 for Arduino                         *
 * Copyright 2010 Filipe Vieira                                              *
 *                                                                           *
 * This file is part of ITG-3200 Arduino library.                            *
@@ -22,7 +22,7 @@
 * SCL     -> pin 21     (no pull up resistors)                              *
 * SDA     -> pin 20     (no pull up resistors)                              *
 * CLK & GND   -> pin GND                                                    *
-* INT     -> not connected  (but can be used)                               *
+* INT       -> not connected  (but can be used)                             *
 * VIO & VDD -> pin 3.3V                                                     *
 *****************************************************************************/
 #ifndef ITG3200_h
