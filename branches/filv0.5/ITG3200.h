@@ -1,7 +1,7 @@
 /****************************************************************************
-* ITG3200.h - ITG-3200/I2C library v0.4 for Arduino                         *
-* Copyright 2010 Filipe Vieira                                              *
-*                                                                           *
+* ITG3200.h - ITG-3200/I2C library v0.5 for Arduino                         *
+* Copyright 2010-2011 Filipe Vieira & various contributors                  *
+* http://code.google.com/p/itg-3200driver                                   *
 * This file is part of ITG-3200 Arduino library.                            *
 *                                                                           *
 * This library is free software: you can redistribute it and/or modify      *
@@ -21,7 +21,7 @@
 * Tested on Arduino Mega with ITG-3200 Breakout                             *
 * SCL     -> pin 21     (no pull up resistors)                              *
 * SDA     -> pin 20     (no pull up resistors)                              *
-* CLK & GND   -> pin GND                                                    *
+* CLK & GND -> pin GND                                                    *
 * INT       -> not connected  (but can be used)                             *
 * VIO & VDD -> pin 3.3V                                                     *
 *****************************************************************************/
@@ -30,11 +30,14 @@
 
 #include "WProgram.h"
 
-#define ITG3200_DEFAULT_ADDR  0x69   //0x69 AD0=1 default I2C address
+#define ITG3200_ADDR_AD0_HIGH  0x69   //AD0=1 0x69 I2C address when AD0 is connected to HIGH (VCC) - default for sparkfun breakout
+#define ITG3200_ADDR_AD0_LOW   0x68   //AD0=0 0x68 I2C address when AD0 is connected to LOW (GND)
 // "The LSB bit of the 7 bit address is determined by the logic level on pin 9. 
 // This allows two ITG-3200 devices to be connected to the same I2C bus.
-// One device should have pin9 (or bit0) LOW and the other should be HIGH." source: ITGsheet
-// Note that pin9 (AD0 - I2C Slave Address LSB) may not be available on some breakout boards.
+// One device should have pin9 (or bit0) LOW and the other should be HIGH." source: ITG3200 datasheet
+// Note that pin9 (AD0 - I2C Slave Address LSB) may not be available on some breakout boards so check 
+// the schematics of your breakout board for the correct address to use.
+
 
 #define GYROSTART_UP_DELAY  70    // 50ms from gyro startup + 20ms register r/w startup
 
@@ -114,16 +117,14 @@ public:
   float polarities[3];
 
   ITG3200();
-  //ITG3200(byte _addr);
   
   // Gyro initialization
-  void init();
-  void init(int address);
-  void init(int address, byte _SRateDiv, byte _Range, byte _LowPassFilter, byte _ClockSrc, bool _ITGReady, bool _INTRawDataReady);
-  
+  void init(unsigned int address);
+  void init(unsigned int address, byte _SRateDiv, byte _Range, byte _filterBW, byte _ClockSrc, bool _ITGReady, bool _INTRawDataReady);      
+    
   // Who Am I
   byte getDevAddr();
-  void setDevAddr(byte _addr);
+  void setDevAddr(unsigned int _addr);
   // Sample Rate Divider
   byte getSampleRateDiv();          
   void setSampleRateDiv(byte _SampleRate);
@@ -154,12 +155,12 @@ public:
   bool isRawDataReady();
   // Gyro Sensors
   void readTemp(float *_Temp);
-  void readGyroRaw(int  *_GyroXYZ);
-  void readGyroRaw(int *_GyroX, int *_GyroY, int *_GyroZ);
+  void readGyroRaw( unsigned int  *_GyroXYZ);
+  void readGyroRaw( unsigned int *_GyroX, unsigned int *_GyroY, unsigned int *_GyroZ);
   void setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol);	// true = Reversed  false = default
   void setGains(float _Xgain, float _Ygain, float _Zgain);
   void setOffsets(float _Xoffset, float _Yoffset, float _Zoffset);
-  void zeroCalibrate(int totSamples, int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets for zero)
+  void zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets for zero)
   void readGyro(float *_GyroXYZ); // includes gain and offset
   void readGyro(float *_GyroX, float *_GyroY, float *_GyroZ); // includes gain and offset    
   // Power management
@@ -175,17 +176,12 @@ public:
   byte getClockSource();
   void setClockSource(byte _CLKsource); // see register parameters above
   
-  void dumpRegisters();
-
+  void writemem(uint8_t _addr, uint8_t _val);
+  void readmem(uint8_t _addr, uint8_t _nbytes, uint8_t __buff[]);
+  
 private:
 
-  int _dev_address;
-  byte _buff[6];      
-
-  void writemem(byte _addr, byte _val);
-  void readmem(byte _addr, int _nbytes, byte __buff[]);
+  uint8_t _dev_address;
+  uint8_t _buff[6];      
 };
-/* dummy stuff */
-void print_bits(byte val);
-void print_unit16(uint16_t val);
 #endif

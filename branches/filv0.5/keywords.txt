@@ -39,5 +39,4 @@ setYgyroStandby	KEYWORD2
 setZgyroStandby	KEYWORD2
 getClockSource	KEYWORD2
 setClockSource	KEYWORD2
-dumpRegisters	KEYWORD2
 

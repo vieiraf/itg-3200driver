@@ -1,11 +1,12 @@
 // ITG-3200_test
-// by Filipe Vieira - 2010
+// Copyright 2010-2011 Filipe Vieira & various contributors.
+// http://code.google.com/p/itg-3200driver
 // Simple test of gyro sensors output using default settings.
 
 #include <Wire.h>
-#include "ITG3200.h"
+#include <ITG3200.h>
 
-ITG3200 gyro;
+ITG3200 gyro = ITG3200();
 float  x,y,z,temperature;
 
 void setup(void) {
@@ -13,9 +14,12 @@ void setup(void) {
   Wire.begin();      // if experiencing gyro problems/crashes while reading XYZ values
                      // please read class constructor comments for further info.
   delay(1000);
-  gyro.init(); 
+  // Use ITG3200_ADDR_AD0_HIGH or ITG3200_ADDR_AD0_LOW as the ITG3200 address 
+  // depending on how AD0 is connected on your breakout board, check its schematics for details
+  gyro.init(ITG3200_ADDR_AD0_HIGH); 
+  
   Serial.print("zeroCalibrating...");
-  gyro.zeroCalibrate(2500,5);
+  gyro.zeroCalibrate(2500,2);
   Serial.println("done.");
 }
 
