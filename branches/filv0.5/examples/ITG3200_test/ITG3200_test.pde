@@ -8,6 +8,7 @@
 
 ITG3200 gyro = ITG3200();
 float  x,y,z,temperature;
+int ix, iy, iz;
 
 void setup(void) {
   Serial.begin(9600);
@@ -19,23 +20,44 @@ void setup(void) {
   gyro.init(ITG3200_ADDR_AD0_HIGH); 
   
   Serial.print("zeroCalibrating...");
-  gyro.zeroCalibrate(2500,2);
+  gyro.zeroCalibrate(2500, 2);
   Serial.println("done.");
 }
 
 void loop(void) {
     while (gyro.isRawDataReady()) {
-      gyro.readTemp(&temperature);
-      gyro.readGyro(&x,&y,&z);
-      Serial.print("X:");
-      Serial.print(x);
-      Serial.print("  Y:");
-      Serial.print(y);
-      Serial.print("  Z:");
-      Serial.print(z);
-      Serial.print("  T:");
-      Serial.println(temperature);
-    } 
+    /* 
+    // Reads uncalibrated raw values from the sensor 
+    gyro.readGyroRaw(&ix,&iy,&iz); 
+    Serial.print("X1:"); 
+    Serial.print(ix); 
+    Serial.print("  Y:"); 
+    Serial.print(iy); 
+    Serial.print("  Z:"); 
+    Serial.println(iz); 
+    */ 
+     
+    /* 
+    // Reads calibrated raw values from the sensor 
+    gyro.readGyroRawCal(&ix,&iy,&iz); 
+    Serial.print("X2:"); 
+    Serial.print(ix); 
+    Serial.print("  Y:"); 
+    Serial.print(iy); 
+    Serial.print("  Z:"); 
+    Serial.println(iz); 
+    */ 
+     
+    // Reads calibrated values in deg/sec    
+    gyro.readGyro(&x,&y,&z); 
+    Serial.print("X3:"); 
+    Serial.print(x); 
+    Serial.print("  Y:"); 
+    Serial.print(y); 
+    Serial.print("  Z:"); 
+    Serial.print(z); 
+    Serial.println("  T:"); 
+  } 
 }
 
 
