@@ -7,7 +7,7 @@
 #include <ITG3200.h>
 
 ITG3200 gyro = ITG3200();
-float  x,y,z,temperature;
+float  x,y,z;
 int ix, iy, iz;
 
 void setup(void) {
@@ -55,8 +55,7 @@ void loop(void) {
     Serial.print("  Y:"); 
     Serial.print(y); 
     Serial.print("  Z:"); 
-    Serial.print(z); 
-    Serial.println("  T:"); 
+    Serial.println(z);
   } 
 }
 

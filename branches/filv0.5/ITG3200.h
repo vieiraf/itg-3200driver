@@ -21,7 +21,7 @@
 * Tested on Arduino Mega with ITG-3200 Breakout                             *
 * SCL     -> pin 21     (no pull up resistors)                              *
 * SDA     -> pin 20     (no pull up resistors)                              *
-* CLK & GND -> pin GND                                                    *
+* CLK & GND -> pin GND                                                      *
 * INT       -> not connected  (but can be used)                             *
 * VIO & VDD -> pin 3.3V                                                     *
 *****************************************************************************/
@@ -29,9 +29,6 @@
 #define ITG3200_h
 
 #include "WProgram.h"
-
-//#define RADIANS           // uncomment for radians output for readgyro() 
-#define PI180  0.0174532925
 
 #define ITG3200_ADDR_AD0_HIGH  0x69   //AD0=1 0x69 I2C address when AD0 is connected to HIGH (VCC) - default for sparkfun breakout
 #define ITG3200_ADDR_AD0_LOW   0x68   //AD0=0 0x68 I2C address when AD0 is connected to LOW (GND)
@@ -111,7 +108,6 @@
 #define PLL_EXTERNAL32      4   // 32.768 kHz
 #define PLL_EXTERNAL19      5   // 19.2 Mhz
 
-
 class ITG3200 {
 
 public:
@@ -159,7 +155,7 @@ public:
   void readTemp(float *_Temp);  
   void readGyroRaw( int *_GyroX, int *_GyroY, int *_GyroZ); // uncalibrated raw values
   void readGyroRaw( int *_GyroXYZ); // uncalibrated raw values
-  void setScaleFactor(float _Xcoeff, float _Ycoeff, float _Zcoeff);  // negative ciefficient = Reversed
+  void setScaleFactor(float _Xcoeff, float _Ycoeff, float _Zcoeff, bool _Radians);  // negative ciefficient = Reversed
   void setOffsets(int _Xoffset, int _Yoffset, int _Zoffset);
   void zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets)
   void readGyroRawCal(int *_GyroX, int *_GyroY, int *_GyroZ); // raw value with offset
