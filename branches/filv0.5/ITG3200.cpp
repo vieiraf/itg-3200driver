@@ -29,7 +29,7 @@
 #include <Wire.h>
 
 ITG3200::ITG3200() {
-  setOffsets(0.0,0.0,0.0);
+  setOffsets(0,0,0);
   setScaleFactor(1.0, 1.0, 1.0, false);  // true to change readGyro output to radians
   //Wire.begin();       //Normally this code is called from setup() at user code
                         //but some people reported that joining I2C bus earlier
