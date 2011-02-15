@@ -35,6 +35,7 @@ ITG3200::ITG3200() {
                         //but some people reported that joining I2C bus earlier
                         //apparently solved problems with master/slave conditions.
                         //Uncomment if needed.
+  tc_param(0,0,0,0,0,0,0); // zero temperature compensarion variables 
 }
 
 void ITG3200::init(unsigned int  address) {
@@ -174,9 +175,9 @@ bool ITG3200::isRawDataReady() {
   return (_buff[0] & INTSTATUS_RAW_DATA_RDY);
 }
 
-void ITG3200::readTemp(float *_Temp) {
+void ITG3200::readTemp(int *_Temp) {
   readmem(TEMP_OUT,2,_buff);
-  *_Temp = 35 + ((_buff[0] << 8 | _buff[1]) + 13200) / 280.0;    // F=C*9/5+32
+  *_Temp = 3500 + ((_buff[0] << 8 | _buff[1]) + 13200) / 2.80;
 }
 
 void ITG3200::readGyroRaw( int *_GyroX, int *_GyroY, int *_GyroZ){
@@ -195,7 +196,7 @@ void ITG3200::setScaleFactor(float _Xcoeff, float _Ycoeff, float _Zcoeff, bool _
   scalefactor[1] = 14.375 * _Ycoeff;
   scalefactor[2] = 14.375 * _Zcoeff;    
     
-  if (_Radians){
+  if (_Radians){  //readGyro()
     scalefactor[0] /= 0.0174532925;//0.0174532925 = PI/180
     scalefactor[1] /= 0.0174532925;
     scalefactor[2] /= 0.0174532925;
@@ -208,6 +209,7 @@ void ITG3200::setOffsets(int _Xoffset, int _Yoffset, int _Zoffset) {
   offsets[2] = _Zoffset;
 }
 
+/* deprecated?
 void ITG3200::zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS) {
   float tmpOffsets[] = {0,0,0};
   int xyz[3];
@@ -219,11 +221,37 @@ void ITG3200::zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS)
     tmpOffsets[1] += xyz[1];
     tmpOffsets[2] += xyz[2];
   }
+
   setOffsets(-tmpOffsets[0] / totSamples + 0.5, -tmpOffsets[1] / totSamples + 0.5, -tmpOffsets[2] / totSamples + 0.5);
+}
+*/
+
+void ITG3200::tc_param(float mx,float my,float mz,float bx, float by,float bz, int t){
+  m[0] = mx;
+  m[1] = my;
+  m[2] = mz;
+  b[0] = bx;
+  b[1] = by;
+  b[2] = bz;
+  reft = t;
+}
+
+void ITG3200::tc_bias(){  
+  int x;
+  
+  readTemp(&x);
+  x = reft - x;
+  offsets[0] = m[0]*x+b[0]+0.5;
+  offsets[1] = m[1]*x+b[1]+0.5;
+  offsets[2] = m[2]*x+b[2]+0.5;
+  state = 1;
 }
 
 void ITG3200::readGyroRawCal(int *_GyroX, int *_GyroY, int *_GyroZ) { 
-  readGyroRaw(_GyroX, _GyroY, _GyroZ); 
+  #ifdef TEMPCOMPENSATION
+  if (state < COMPENSATION_RATE) state++; else tc_bias();  // update bias allways or after n calls
+  #endif
+  readGyroRaw(_GyroX, _GyroY, _GyroZ);    
   *_GyroX += offsets[0]; 
   *_GyroY += offsets[1]; 
   *_GyroZ += offsets[2]; 

@@ -38,6 +38,12 @@
 // Note that pin9 (AD0 - I2C Slave Address LSB) may not be available on some breakout boards so check 
 // the schematics of your breakout board for the correct address to use.
 
+#define TEMPCOMPENSATION         // uncomment to enable temperature compensation (TC) at readGyroRawCal().
+                                 // To have TC working one must first run gyro on a controlled way
+                                 // open ITG3200_calib.pde example to obtain equation 
+                                 // variables to solve y=mx+b.
+#define COMPENSATION_RATE   10   // read temperature and update offsets after 10 gyro readGyroCal() calls.                                 
+
 #define GYROSTART_UP_DELAY  70    // 50ms from gyro startup + 20ms register r/w startup
 
 /* ---- Registers ---- */
@@ -112,8 +118,13 @@ class ITG3200 {
 
 public:
   float scalefactor[3];    // Scale Factor for gain and polarity
-  int offsets[3];
+  int offsets[3];  
 
+  // TC
+  float m[3], b[3];
+  int reft;
+  byte state;
+  
   ITG3200();
   
   // Gyro initialization
@@ -152,12 +163,13 @@ public:
   bool isITGReady();
   bool isRawDataReady();
   // Gyro Sensors
-  void readTemp(float *_Temp);  
+  void readTemp(int *_Temp);  // temp in 0.01C
   void readGyroRaw( int *_GyroX, int *_GyroY, int *_GyroZ); // uncalibrated raw values
   void readGyroRaw( int *_GyroXYZ); // uncalibrated raw values
   void setScaleFactor(float _Xcoeff, float _Ycoeff, float _Zcoeff, bool _Radians);  // negative ciefficient = Reversed
   void setOffsets(int _Xoffset, int _Yoffset, int _Zoffset);
-  void zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets)
+  // deprecated void zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS);	// assuming gyroscope is stationary (updates XYZ offsets)
+  void tc_param(float mx,float my,float mz,float bx, float by,float bz, int t); // sets parameters for TC  
   void readGyroRawCal(int *_GyroX, int *_GyroY, int *_GyroZ); // raw value with offset
   void readGyroRawCal(int *_GyroXYZ); // raw value with offset
   void readGyro(float *_GyroX, float *_GyroY, float *_GyroZ); // deg/sec calibrated & ScaleFactor 
@@ -179,6 +191,8 @@ public:
   void readmem(uint8_t _addr, uint8_t _nbytes, uint8_t __buff[]);
   
 private:
+
+  void tc_bias(); // temperature compensation calculation<
 
   uint8_t _dev_address;
   uint8_t _buff[6];      
