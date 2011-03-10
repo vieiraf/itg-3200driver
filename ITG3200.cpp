@@ -1,7 +1,7 @@
 /****************************************************************************
-* ITG3200.h - ITG-3200/I2C library v0.4 for Arduino                         *
-* Copyright 2010 Filipe Vieira                                              *
-*                                                                           *
+* ITG3200.h - ITG-3200/I2C library v0.5 for Arduino                         *
+* Copyright 2010-2011 Filipe Vieira & various contributors                  *
+* http://code.google.com/p/itg-3200driver                                   *
 * This file is part of ITG-3200 Arduino library.                            *
 *                                                                           *
 * This library is free software: you can redistribute it and/or modify      *
@@ -21,29 +21,27 @@
 * Tested on Arduino Mega with ITG-3200 Breakout                             *
 * SCL     -> pin 21     (no pull up resistors)                              *
 * SDA     -> pin 20     (no pull up resistors)                              *
-* CLK & GND   -> pin GND                                                    *
+* CLK & GND -> pin GND                                                      *
 * INT       -> not connected  (but can be used)                             *
 * VIO & VDD -> pin 3.3V                                                     *
 *****************************************************************************/
 #include "ITG3200.h"
 #include <Wire.h>
 
-
 ITG3200::ITG3200() {
-  setGains(1.0,1.0,1.0);
-  setOffsets(0.0,0.0,0.0);
-  setRevPolarity(0,0,0);
+  setOffsets(0,0,0);
+  setScaleFactor(1.0, 1.0, 1.0, false);  // true to change readGyro output to radians
   //Wire.begin();       //Normally this code is called from setup() at user code
                         //but some people reported that joining I2C bus earlier
                         //apparently solved problems with master/slave conditions.
                         //Uncomment if needed.
 }
 
-void ITG3200::init() {
+void ITG3200::init(unsigned int  address) {
   // Uncomment or change your default ITG3200 initialization
   
   // fast sample rate - divisor = 0 filter = 0 clocksrc = 0, 1, 2, or 3  (raw values)
-  init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
+  init(address, NOSRDIVIDER, RANGE2000, BW256_SR8, PLL_XGYRO_REF, true, true);
   
   // slow sample rate - divisor = 0  filter = 1,2,3,4,5, or 6  clocksrc = 0, 1, 2, or 3  (raw values)
   //init(NOSRDIVIDER, RANGE2000, BW010_SR1, INTERNALOSC, true, true);
@@ -55,11 +53,7 @@ void ITG3200::init() {
   //init(NOSRDIVIDER, RANGE2000, BW010_SR1, PLL_EXTERNAL32, true, true);
 }
 
-void ITG3200::init(int address) {
-  init(address, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
-}
-
-void ITG3200::init(int address, byte _SRateDiv, byte _Range, byte _filterBW, byte _ClockSrc, bool _ITGReady, bool _INTRawDataReady) {
+void ITG3200::init(unsigned int address, byte _SRateDiv, byte _Range, byte _filterBW, byte _ClockSrc, bool _ITGReady, bool _INTRawDataReady) {
   _dev_address = address;
   setSampleRateDiv(_SRateDiv);
   setFSRange(_Range);
@@ -76,7 +70,7 @@ byte ITG3200::getDevAddr() {
   return _dev_address;
 }
 
-void ITG3200::setDevAddr(byte _addr) {
+void ITG3200::setDevAddr(unsigned int  _addr) {
   writemem(WHO_AM_I, _addr); 
   _dev_address = _addr;
 }
@@ -182,60 +176,73 @@ bool ITG3200::isRawDataReady() {
 
 void ITG3200::readTemp(float *_Temp) {
   readmem(TEMP_OUT,2,_buff);
-  *_Temp = 35 + (((_buff[0] << 8) | _buff[1]) + 13200) / 280.0;    // F=C*9/5+32  
+  *_Temp = 35 + ((_buff[0] << 8 | _buff[1]) + 13200) / 280.0;    // F=C*9/5+32
 }
 
-void ITG3200::readGyroRaw(int *_GyroXYZ){
+void ITG3200::readGyroRaw( int *_GyroX, int *_GyroY, int *_GyroZ){
+  readmem(GYRO_XOUT, 6, _buff);
+  *_GyroX = _buff[0] << 8 | _buff[1];
+  *_GyroY = _buff[2] << 8 | _buff[3]; 
+  *_GyroZ = _buff[4] << 8 | _buff[5];
+}
+
+void ITG3200::readGyroRaw( int *_GyroXYZ){
   readGyroRaw(_GyroXYZ, _GyroXYZ+1, _GyroXYZ+2);
 }
 
-void ITG3200::readGyroRaw(int *_GyroX, int *_GyroY, int *_GyroZ){
-  readmem(GYRO_XOUT, 6, _buff);
-  *_GyroX = ((_buff[0] << 8) | _buff[1]);
-  *_GyroY = ((_buff[2] << 8) | _buff[3]); 
-  *_GyroZ = ((_buff[4] << 8) | _buff[5]);
+void ITG3200::setScaleFactor(float _Xcoeff, float _Ycoeff, float _Zcoeff, bool _Radians) { 
+  scalefactor[0] = 14.375 * _Xcoeff;   
+  scalefactor[1] = 14.375 * _Ycoeff;
+  scalefactor[2] = 14.375 * _Zcoeff;    
+    
+  if (_Radians){
+    scalefactor[0] /= 0.0174532925;//0.0174532925 = PI/180
+    scalefactor[1] /= 0.0174532925;
+    scalefactor[2] /= 0.0174532925;
+  }
 }
 
-void ITG3200::setRevPolarity(bool _Xpol, bool _Ypol, bool _Zpol) {
-  polarities[0] = _Xpol ? -1 : 1;
-  polarities[1] = _Ypol ? -1 : 1;
-  polarities[2] = _Zpol ? -1 : 1;
-}
-
-void ITG3200::setGains(float _Xgain, float _Ygain, float _Zgain) {
-  gains[0] = _Xgain;
-  gains[1] = _Ygain;
-  gains[2] = _Zgain;
-}
-
-void ITG3200::setOffsets(float _Xoffset, float _Yoffset, float _Zoffset) {
+void ITG3200::setOffsets(int _Xoffset, int _Yoffset, int _Zoffset) {
   offsets[0] = _Xoffset;
   offsets[1] = _Yoffset;
   offsets[2] = _Zoffset;
 }
 
-void ITG3200::zeroCalibrate(int totSamples, int sampleDelayMS) {
-  float xyz[3], tmpOffsets[] = {0,0,0};
+void ITG3200::zeroCalibrate(unsigned int totSamples, unsigned int sampleDelayMS) {
+  float tmpOffsets[] = {0,0,0};
+  int xyz[3];
 
   for (int i = 0;i < totSamples;i++){
     delay(sampleDelayMS);
-    readGyro(xyz);
+    readGyroRaw(xyz);
     tmpOffsets[0] += xyz[0];
     tmpOffsets[1] += xyz[1];
-    tmpOffsets[2] += xyz[2];        
+    tmpOffsets[2] += xyz[2];
   }
-	setOffsets(-tmpOffsets[0] / totSamples, -tmpOffsets[1] / totSamples, -tmpOffsets[2] / totSamples);
+  setOffsets(-tmpOffsets[0] / totSamples + 0.5, -tmpOffsets[1] / totSamples + 0.5, -tmpOffsets[2] / totSamples + 0.5);
 }
+
+void ITG3200::readGyroRawCal(int *_GyroX, int *_GyroY, int *_GyroZ) { 
+  readGyroRaw(_GyroX, _GyroY, _GyroZ); 
+  *_GyroX += offsets[0]; 
+  *_GyroY += offsets[1]; 
+  *_GyroZ += offsets[2]; 
+} 
+
+void ITG3200::readGyroRawCal(int *_GyroXYZ) { 
+  readGyroRawCal(_GyroXYZ, _GyroXYZ+1, _GyroXYZ+2); 
+} 
+
+void ITG3200::readGyro(float *_GyroX, float *_GyroY, float *_GyroZ){
+  int x, y, z; 
+  readGyroRawCal(&x, &y, &z); // x,y,z will contain calibrated integer values from the sensor 
+  *_GyroX =  x / scalefactor[0]; 
+  *_GyroY =  y / scalefactor[1]; 
+  *_GyroZ =  z / scalefactor[2];     
+} 
 
 void ITG3200::readGyro(float *_GyroXYZ){
   readGyro(_GyroXYZ, _GyroXYZ+1, _GyroXYZ+2);
-}
-
-void ITG3200::readGyro(float *_GyroX, float *_GyroY, float *_GyroZ){
-  readmem(GYRO_XOUT, 6, _buff);
-  *_GyroX = (((_buff[0] << 8) | _buff[1]) / 14.375 * polarities[0] * gains[0] + offsets[0]);
-  *_GyroY = (((_buff[2] << 8) | _buff[3]) / 14.375 * polarities[1] * gains[1] + offsets[1]); 
-  *_GyroZ = (((_buff[4] << 8) | _buff[5]) / 14.375 * polarities[2] * gains[2] + offsets[2]);
 }
 
 void ITG3200::reset() {     
@@ -293,47 +300,21 @@ void ITG3200::setClockSource(byte _CLKsource) {
   writemem(PWR_MGM, ((_buff[0] & ~PWRMGM_CLK_SEL) | _CLKsource)); 
 }
 
-void ITG3200::dumpRegisters() {
-  int ValidRegisterAddr[]={0,21,22,23,26,27,28,29,30,31,32,33,34,57,56,62}; 
-  byte _b, i, totregisters = sizeof(ValidRegisterAddr)/sizeof(int *);
-  Serial.println("---dump start---");
-  Serial.println("Register address|Register data");
-  Serial.println("hex dec | 76543210  dec hex");
-  for (i=0;i<totregisters;i++){    
-    Serial.print("0x");
-    Serial.print(ValidRegisterAddr[i], HEX);
-    Serial.print("  ");
-    Serial.print(ValidRegisterAddr[i], DEC);
-    Serial.print("  |");
-    readmem(ValidRegisterAddr[i], 1, &_b);
-    Serial.print("b");
-    print_bits(_b);
-    Serial.print("  ");
-    Serial.print(_b,DEC);
-    Serial.print("  0x");
-    Serial.print(_b,HEX);
-    Serial.println("");    
-  }
-  Serial.println("---dump end---");
-}
-
-//PRIVATE methods
-
-void ITG3200::writemem(byte _addr, byte _val) {
+void ITG3200::writemem(uint8_t _addr, uint8_t _val) {
   Wire.beginTransmission(_dev_address);   // start transmission to device 
   Wire.send(_addr); // send register address
   Wire.send(_val); // send value to write
   Wire.endTransmission(); // end transmission
 }
 
-void ITG3200::readmem(byte _addr, int _nbytes, byte __buff[]) {
+void ITG3200::readmem(uint8_t _addr, uint8_t _nbytes, uint8_t __buff[]) {
   Wire.beginTransmission(_dev_address); // start transmission to device 
   Wire.send(_addr); // sends register address to read from
   Wire.endTransmission(); // end transmission
   
   Wire.beginTransmission(_dev_address); // start transmission to device 
   Wire.requestFrom(_dev_address, _nbytes);// send data n-bytes read
-  byte i = 0; 
+  uint8_t i = 0; 
   while (Wire.available()) {
     __buff[i] = Wire.receive(); // receive DATA
     i++;
@@ -341,13 +322,4 @@ void ITG3200::readmem(byte _addr, int _nbytes, byte __buff[]) {
   Wire.endTransmission(); // end transmission
 }
 
-void print_bits(byte val){
-  int i;
-  for(i=7; i>=0; i--) 
-    Serial.print(val >> i & 1, BIN);
-}
- void print_unit16(uint16_t val){
-  int i;
-  for(i=15; i>=0; i--) 
-    Serial.print(val >> i & 1, BIN);
-} 
+

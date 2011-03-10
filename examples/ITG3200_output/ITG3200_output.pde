@@ -1,13 +1,13 @@
 // ITG-3200_output
-// by Filipe Vieira - 2010
+// Copyright 2010-2011 Filipe Vieira & various contributors.
+// http://code.google.com/p/itg-3200driver
 // Simple example of library usage with almost every gyro and lib features being used.
 
 #include <Wire.h>
-#include "ITG3200.h"
+#include <ITG3200.h>
 
-ITG3200 gyro;
-float xyz[3];
-float temperature;
+ITG3200 gyro = ITG3200();
+float xyz[3], temperature;
 
 void setup(void) {
   Serial.begin(9600);
@@ -15,17 +15,19 @@ void setup(void) {
                      // please read class constructor comments for further info.
   delay(1000);
   gyro.reset();
-  gyro.init(ITG3200_DEFAULT_ADDR, NOSRDIVIDER, RANGE2000, BW256_SR8, INTERNALOSC, true, true);
+  // Use ITG3200_ADDR_AD0_HIGH or ITG3200_ADDR_AD0_LOW as the ITG3200 address 
+  // depending on how AD0 is connected on your breakout board, check its schematics for details
+  gyro.init(ITG3200_ADDR_AD0_HIGH);
 	
   Serial.print("zeroCalibrating...");
-  gyro.zeroCalibrate(2500,5);
+  gyro.zeroCalibrate(2500,2);
   Serial.println("done.");
 		
   showall();
  
   Serial.println("Registers dump");
   Serial.println("==========================================================");
-  gyro.dumpRegisters();
+  dumpRegisters();
   Serial.println("==========================================================");
   
   delay(5000);
@@ -173,10 +175,42 @@ void showall(void) {
         break;        
   }
 	
-  Serial.print("X offset                        = ");  
+  Serial.print("X offset (raw)                  = ");  
   Serial.println(gyro.offsets[0]);
-  Serial.print("Y offset                        = ");  
+  Serial.print("Y offset (raw)                  = ");  
   Serial.println(gyro.offsets[1]);
-  Serial.print("Z offset                        = ");  
+  Serial.print("Z offset (raw)                  = ");  
   Serial.println(gyro.offsets[2]);
 }
+
+void dumpRegisters() {
+  byte ValidRegisterAddr[]={0,21,22,23,26,27,28,29,30,31,32,33,34,57,56,62}; 
+  byte _b, i, totregisters = sizeof(ValidRegisterAddr);
+  Serial.println("---dump start---");
+  Serial.println("Register address|Register data");
+  Serial.println("Reg.address(hex,dec) Reg.data(bin,hex,dec)");
+  for (i=0;i<totregisters;i++){    
+    Serial.print("0x");
+    Serial.print(ValidRegisterAddr[i], HEX);
+    Serial.print(",");
+    Serial.print(ValidRegisterAddr[i], DEC);
+    Serial.print(",");
+    gyro.readmem(ValidRegisterAddr[i], 1, &_b);
+    Serial.print("b");
+    print_bits(_b);
+    Serial.print(",0x");
+    Serial.print(_b,HEX);
+    Serial.print(",");
+    Serial.println(_b,DEC);  
+  }
+  Serial.println("---dump end---");
+}
+
+void print_bits(uint8_t val){
+  for(int i=7; i>=0; i--) 
+    Serial.print(val >> i & 1, BIN);
+}
+ void print_unit16(uint16_t val){
+  for(int i=15; i>=0; i--) 
+    Serial.print(val >> i & 1, BIN);
+} 
