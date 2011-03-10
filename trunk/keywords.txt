@@ -24,10 +24,10 @@ isITGReady	KEYWORD2
 isRawDataReady	KEYWORD2
 readTemp	KEYWORD2
 readGyroRaw	KEYWORD2
-setRevPolarity	KEYWORD2
-setGains	KEYWORD2
+setScaleFactor  KEYWORD2
 setOffsets	KEYWORD2
 zeroCalibrate	KEYWORD2
+readGyroRawCal	KEYWORD2
 readGyro	KEYWORD2
 reset	KEYWORD2
 isLowPower	KEYWORD2
@@ -39,5 +39,4 @@ setYgyroStandby	KEYWORD2
 setZgyroStandby	KEYWORD2
 getClockSource	KEYWORD2
 setClockSource	KEYWORD2
-dumpRegisters	KEYWORD2
 
