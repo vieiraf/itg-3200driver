@@ -1,5 +1,5 @@
 /****************************************************************************
-* ITG3200.h - ITG-3200/I2C library v0.5 for Arduino                         *
+* ITG3200.h - ITG-3200/I2C library v0.6 for Arduino                         *
 * Copyright 2010-2011 Filipe Vieira & various contributors                  *
 * http://code.google.com/p/itg-3200driver                                   *
 * This file is part of ITG-3200 Arduino library.                            *
@@ -302,21 +302,25 @@ void ITG3200::setClockSource(byte _CLKsource) {
 
 void ITG3200::writemem(uint8_t _addr, uint8_t _val) {
   Wire.beginTransmission(_dev_address);   // start transmission to device 
-  Wire.send(_addr); // send register address
-  Wire.send(_val); // send value to write
+  //Wire.send(_addr); // send register address
+  //Wire.send(_val); // send value to write
+  Wire.write(_addr); // send register address
+  Wire.write(_val); // send value to write
   Wire.endTransmission(); // end transmission
 }
 
 void ITG3200::readmem(uint8_t _addr, uint8_t _nbytes, uint8_t __buff[]) {
   Wire.beginTransmission(_dev_address); // start transmission to device 
-  Wire.send(_addr); // sends register address to read from
+  //Wire.send(_addr); // sends register address to read from
+  Wire.write(_addr); // sends register address to read from
   Wire.endTransmission(); // end transmission
   
   Wire.beginTransmission(_dev_address); // start transmission to device 
   Wire.requestFrom(_dev_address, _nbytes);// send data n-bytes read
   uint8_t i = 0; 
   while (Wire.available()) {
-    __buff[i] = Wire.receive(); // receive DATA
+    //__buff[i] = Wire.receive(); // receive DATA
+    __buff[i] = Wire.read(); // receive DATA
     i++;
   }
   Wire.endTransmission(); // end transmission

@@ -1,5 +1,5 @@
 /****************************************************************************
-* ITG3200.h - ITG-3200/I2C library v0.5 for Arduino                         *
+* ITG3200.h - ITG-3200/I2C library v0.6 for Arduino                         *
 * Copyright 2010-2011 Filipe Vieira & various contributors                  *
 * http://code.google.com/p/itg-3200driver                                   *
 * This file is part of ITG-3200 Arduino library.                            *
@@ -28,7 +28,11 @@
 #ifndef ITG3200_h
 #define ITG3200_h
 
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
 #include "WProgram.h"
+#endif
 
 #define ITG3200_ADDR_AD0_HIGH  0x69   //AD0=1 0x69 I2C address when AD0 is connected to HIGH (VCC) - default for sparkfun breakout
 #define ITG3200_ADDR_AD0_LOW   0x68   //AD0=0 0x68 I2C address when AD0 is connected to LOW (GND)
