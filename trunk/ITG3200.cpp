@@ -1,6 +1,6 @@
 /****************************************************************************
 * ITG3200.h - ITG-3200/I2C library v0.6 for Arduino                         *
-* Copyright 2010-2011 Filipe Vieira & various contributors                  *
+* Copyright 2010-2012 Filipe Vieira & various contributors                  *
 * http://code.google.com/p/itg-3200driver                                   *
 * This file is part of ITG-3200 Arduino library.                            *
 *                                                                           *
